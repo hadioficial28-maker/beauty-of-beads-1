@@ -1,0 +1,1023 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Beauty of Beads - Handcrafted Pearl & Chain Bracelets</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700;800&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --rose-gold: #B76E79;
+            --rose-gold-light: #D48E99;
+            --soft-pink: #FADADD;
+            --cream: #FFF8F0;
+            --gold: #D4AF37;
+            --dark: #1a1a1a;
+            --gray: #6b7280;
+            --light-gray: #f3f4f6;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            color: var(--dark);
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        h1, h2, h3, h4, h5, h6 {
+            font-family: 'Playfair Display', serif;
+        }
+
+        /* Admin Panel Styles */
+        .admin-panel {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.8);
+            z-index: 3000;
+            overflow-y: auto;
+            padding: 2rem;
+        }
+
+        .admin-panel.active {
+            display: block;
+        }
+
+        .admin-container {
+            max-width: 1000px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 2rem;
+            padding: 2rem;
+        }
+
+        .admin-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+            padding-bottom: 1rem;
+            border-bottom: 2px solid var(--light-gray);
+        }
+
+        .admin-header h2 {
+            color: var(--rose-gold);
+        }
+
+        .admin-close {
+            background: var(--rose-gold);
+            color: white;
+            border: none;
+            padding: 0.5rem 1.5rem;
+            border-radius: 50px;
+            cursor: pointer;
+            font-weight: 600;
+        }
+
+        .product-form {
+            background: var(--cream);
+            padding: 2rem;
+            border-radius: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .product-form h3 {
+            margin-bottom: 1.5rem;
+            color: var(--dark);
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .admin-products-list {
+            display: grid;
+            gap: 1rem;
+        }
+
+        .admin-product-item {
+            background: white;
+            padding: 1rem;
+            border-radius: 1rem;
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+
+        .admin-product-item img {
+            width: 80px;
+            height: 80px;
+            object-fit: cover;
+            border-radius: 0.5rem;
+        }
+
+        .admin-product-info {
+            flex: 1;
+        }
+
+        .admin-product-actions {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .btn-edit, .btn-delete {
+            padding: 0.5rem 1rem;
+            border: none;
+            border-radius: 0.5rem;
+            cursor: pointer;
+            font-weight: 600;
+        }
+
+        .btn-edit {
+            background: var(--gold);
+            color: white;
+        }
+
+        .btn-delete {
+            background: #ef4444;
+            color: white;
+        }
+
+        /* Login Modal */
+        .login-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.6);
+            z-index: 2500;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .login-modal.active {
+            display: flex;
+        }
+
+        .login-box {
+            background: white;
+            padding: 2.5rem;
+            border-radius: 2rem;
+            max-width: 400px;
+            width: 100%;
+        }
+
+        .login-box h3 {
+            margin-bottom: 1.5rem;
+            text-align: center;
+            color: var(--rose-gold);
+        }
+
+        /* Navigation */
+        nav {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            position: fixed;
+            width: 100%;
+            top: 0;
+            z-index: 1000;
+            padding: 1rem 0;
+        }
+
+        .nav-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            text-decoration: none;
+        }
+
+        .logo-icon {
+            width: 45px;
+            height: 45px;
+            background: linear-gradient(135deg, var(--rose-gold), var(--gold));
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-family: 'Playfair Display', serif;
+            font-size: 1.5rem;
+            font-weight: 700;
+        }
+
+        .logo-text h1 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--dark);
+            line-height: 1.2;
+        }
+
+        .logo-text p {
+            font-size: 0.65rem;
+            letter-spacing: 0.2em;
+            color: var(--rose-gold);
+            text-transform: uppercase;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 2rem;
+            list-style: none;
+            align-items: center;
+        }
+
+        .nav-links a {
+            text-decoration: none;
+            color: var(--dark);
+            font-weight: 500;
+            font-size: 0.95rem;
+            transition: color 0.3s;
+            position: relative;
+        }
+
+        .nav-links a:hover {
+            color: var(--rose-gold);
+        }
+
+        .admin-login-btn {
+            background: var(--rose-gold);
+            color: white !important;
+            padding: 0.5rem 1rem;
+            border-radius: 50px;
+            cursor: pointer;
+        }
+
+        /* Hero Section */
+        #home {
+            min-height: 100vh;
+            background: linear-gradient(135deg, var(--cream) 0%, var(--soft-pink) 50%, #fbf4f5 100%);
+            display: flex;
+            align-items: center;
+            padding: 120px 2rem 4rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        #home::before,
+        #home::after {
+            content: '';
+            position: absolute;
+            border-radius: 50%;
+            opacity: 0.5;
+        }
+
+        #home::before {
+            width: 400px;
+            height: 400px;
+            background: var(--soft-pink);
+            top: -100px;
+            left: -100px;
+            filter: blur(80px);
+        }
+
+        #home::after {
+            width: 400px;
+            height: 400px;
+            background: var(--gold);
+            bottom: -100px;
+            right: -100px;
+            filter: blur(80px);
+            opacity: 0.3;
+        }
+
+        .hero-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 4rem;
+            align-items: center;
+            position: relative;
+            z-index: 1;
+        }
+
+        .hero-content h2 {
+            font-size: 3.5rem;
+            line-height: 1.2;
+            margin-bottom: 1.5rem;
+            color: var(--dark);
+        }
+
+        .hero-content h2 span {
+            background: linear-gradient(135deg, var(--rose-gold), var(--gold));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .hero-content p {
+            font-size: 1.15rem;
+            color: var(--gray);
+            margin-bottom: 2rem;
+            line-height: 1.8;
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 1rem 2rem;
+            border-radius: 50px;
+            text-decoration: none;
+            font-weight: 600;
+            transition: all 0.3s;
+            cursor: pointer;
+            border: none;
+            font-size: 1rem;
+        }
+
+        .btn-primary {
+            background: var(--rose-gold);
+            color: white;
+            box-shadow: 0 4px 15px rgba(183, 110, 121, 0.3);
+        }
+
+        .btn-primary:hover {
+            background: var(--rose-gold-light);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(183, 110, 121, 0.4);
+        }
+
+        /* Products Section */
+        #products {
+            padding: 6rem 2rem;
+            background: linear-gradient(to bottom, var(--cream), var(--soft-pink));
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .section-header {
+            text-align: center;
+            margin-bottom: 4rem;
+        }
+
+        .section-tag {
+            display: inline-block;
+            font-size: 0.85rem;
+            letter-spacing: 0.3em;
+            color: var(--rose-gold);
+            text-transform: uppercase;
+            margin-bottom: 1rem;
+        }
+
+        .section-title {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            color: var(--dark);
+        }
+
+        .products-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2.5rem;
+        }
+
+        .product-card {
+            background: white;
+            border-radius: 1.5rem;
+            overflow: hidden;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.08);
+            transition: all 0.3s;
+        }
+
+        .product-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 15px 40px rgba(183, 110, 121, 0.2);
+        }
+
+        .product-image {
+            position: relative;
+            aspect-ratio: 1;
+            overflow: hidden;
+        }
+
+        .product-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.5s;
+        }
+
+        .product-card:hover .product-image img {
+            transform: scale(1.1);
+        }
+
+        .product-badge {
+            position: absolute;
+            top: 1rem;
+            left: 1rem;
+            padding: 0.4rem 1rem;
+            background: var(--gold);
+            color: white;
+            border-radius: 50px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+
+        .product-info {
+            padding: 1.5rem;
+        }
+
+        .product-category {
+            font-size: 0.8rem;
+            letter-spacing: 0.1em;
+            color: var(--rose-gold);
+            text-transform: uppercase;
+            margin-bottom: 0.5rem;
+        }
+
+        .product-name {
+            font-size: 1.25rem;
+            margin-bottom: 0.5rem;
+            color: var(--dark);
+        }
+
+        .product-description {
+            color: var(--gray);
+            font-size: 0.9rem;
+            margin-bottom: 1rem;
+            line-height: 1.6;
+        }
+
+        .product-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-top: 1rem;
+            border-top: 1px solid var(--light-gray);
+        }
+
+        .product-price {
+            font-family: 'Playfair Display', serif;
+            font-size: 1.75rem;
+            font-weight: 700;
+            color: var(--rose-gold);
+        }
+
+        .cod-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.3rem;
+            background: #10b981;
+            color: white;
+            padding: 0.4rem 0.8rem;
+            border-radius: 50px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+
+        /* Order Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.6);
+            z-index: 2000;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 2rem;
+            max-width: 500px;
+            width: 100%;
+            padding: 2.5rem;
+            position: relative;
+        }
+
+        .modal-close {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            border: none;
+            background: var(--light-gray);
+            cursor: pointer;
+            font-size: 1.5rem;
+        }
+
+        .form-group {
+            margin-bottom: 1.25rem;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+        }
+
+        .form-group input,
+        .form-group textarea {
+            width: 100%;
+            padding: 0.9rem;
+            border: 2px solid var(--light-gray);
+            border-radius: 0.75rem;
+            font-family: inherit;
+            font-size: 1rem;
+        }
+
+        .form-group input:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: var(--rose-gold);
+        }
+
+        /* Contact Section */
+        #contact {
+            padding: 6rem 2rem;
+            background: white;
+        }
+
+        /* Footer */
+        footer {
+            background: linear-gradient(to bottom, var(--cream), #fff8f0);
+            padding: 4rem 2rem 2rem;
+        }
+
+        .footer-bottom {
+            border-top: 1px solid rgba(0,0,0,0.1);
+            padding-top: 2rem;
+            text-align: center;
+            color: var(--gray);
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .hero-container {
+                grid-template-columns: 1fr;
+            }
+
+            .hero-content h2 {
+                font-size: 2.5rem;
+            }
+
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+
+            .nav-links {
+                gap: 1rem;
+                font-size: 0.85rem;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Navigation -->
+    <nav>
+        <div class="nav-container">
+            <a href="#" class="logo">
+                <div class="logo-icon">B</div>
+                <div class="logo-text">
+                    <h1>Beauty of Beads</h1>
+                    <p>Handcrafted Jewelry</p>
+                </div>
+            </a>
+            <ul class="nav-links">
+                <li><a href="#home">Home</a></li>
+                <li><a href="#products">Shop</a></li>
+                <li><a href="#contact">Contact</a></li>
+                <li><a href="#" class="admin-login-btn" onclick="showLoginModal()">Owner Login</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- Login Modal -->
+    <div id="loginModal" class="login-modal">
+        <div class="login-box">
+            <h3>Owner Login</h3>
+            <form onsubmit="handleLogin(event)">
+                <div class="form-group">
+                    <label>Email</label>
+                    <input type="email" id="loginEmail" required placeholder="beautyofbeads87@gmail.com">
+                </div>
+                <div class="form-group">
+                    <label>Password</label>
+                    <input type="password" id="loginPassword" required placeholder="Enter password">
+                </div>
+                <button type="submit" class="btn btn-primary" style="width: 100%; justify-content: center;">
+                    Login
+                </button>
+                <button type="button" onclick="closeLoginModal()" style="width: 100%; margin-top: 1rem; padding: 0.75rem; background: var(--light-gray); border: none; border-radius: 50px; cursor: pointer;">
+                    Cancel
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Admin Panel -->
+    <div id="adminPanel" class="admin-panel">
+        <div class="admin-container">
+            <div class="admin-header">
+                <h2>Admin Panel - Manage Products</h2>
+                <button class="admin-close" onclick="closeAdminPanel()">Close</button>
+            </div>
+
+            <!-- Add/Edit Product Form -->
+            <div class="product-form">
+                <h3 id="formTitle">Add New Product</h3>
+                <form onsubmit="saveProduct(event)">
+                    <input type="hidden" id="productId">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Product Name *</label>
+                            <input type="text" id="productName" required placeholder="e.g., Pearl Chain Bracelet">
+                        </div>
+                        <div class="form-group">
+                            <label>Price (PKR) *</label>
+                            <input type="number" id="productPrice" required placeholder="e.g., 400">
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Category *</label>
+                            <input type="text" id="productCategory" required placeholder="e.g., Pearl Bracelet">
+                        </div>
+                        <div class="form-group">
+                            <label>Badge (Optional)</label>
+                            <input type="text" id="productBadge" placeholder="e.g., New, Best Seller">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Image URL *</label>
+                        <input type="url" id="productImage" required placeholder="https://example.com/image.jpg">
+                    </div>
+                    <div class="form-group">
+                        <label>Description *</label>
+                        <textarea id="productDescription" required rows="3" placeholder="Product description..."></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-primary" style="width: 100%; justify-content: center;">
+                        Save Product
+                    </button>
+                </form>
+            </div>
+
+            <!-- Products List -->
+            <h3 style="margin-bottom: 1rem;">All Products</h3>
+            <div id="adminProductsList" class="admin-products-list">
+                <!-- Products will be loaded here -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Hero Section -->
+    <section id="home">
+        <div class="hero-container">
+            <div class="hero-content">
+                <h2>Handcrafted <span>Beauty</span> in Every Bead</h2>
+                <p>Unique handmade pearl and chain bracelets designed with love and creativity. Each piece is a one-of-a-kind work of art, crafted just for you.</p>
+                <a href="#products" class="btn btn-primary">
+                    Shop Now →
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Products Section -->
+    <section id="products">
+        <div class="container">
+            <div class="section-header">
+                <p class="section-tag">Our Collection</p>
+                <h2 class="section-title">Pearl & Chain Bracelets</h2>
+                <p class="section-subtitle">Handcrafted with genuine pearls and quality chains</p>
+            </div>
+            <div id="productsGrid" class="products-grid">
+                <!-- Products will be loaded here dynamically -->
+                <p style="text-align: center; grid-column: 1/-1;">Loading products...</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Order Modal -->
+    <div id="orderModal" class="modal">
+        <div class="modal-content">
+            <button class="modal-close" onclick="closeOrderModal()">×</button>
+            <h3>Order Now</h3>
+            <p style="color: var(--gray); margin-bottom: 1.5rem;">Fill in your details for Cash on Delivery</p>
+            
+            <form onsubmit="submitOrder(event)">
+                <div class="form-group">
+                    <label>Full Name *</label>
+                    <input type="text" id="customerName" required>
+                </div>
+                <div class="form-group">
+                    <label>Phone Number *</label>
+                    <input type="tel" id="customerPhone" required placeholder="03XX-XXXXXXX">
+                </div>
+                <div class="form-group">
+                    <label>Complete Address *</label>
+                    <textarea id="customerAddress" required rows="3"></textarea>
+                </div>
+                <button type="submit" class="btn btn-primary" style="width: 100%; justify-content: center;">
+                    Confirm Order ✓
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Contact Section -->
+    <section id="contact">
+        <div class="container">
+            <div class="section-header">
+                <p class="section-tag">Get in Touch</p>
+                <h2 class="section-title">Contact Us</h2>
+            </div>
+            <div style="text-align: center;">
+                <p style="margin-bottom: 1rem;"><strong>Email:</strong> <a href="mailto:beautyofbeads87@gmail.com">beautyofbeads87@gmail.com</a></p>
+                <p><strong>Instagram:</strong> <a href="https://www.instagram.com/beauty_of_beads_1/" target="_blank">@beauty_of_beads_1</a></p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer>
+        <div class="container">
+            <div class="footer-bottom">
+                <p>© 2026 Beauty of Beads. All Rights Reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // 🔥 FIREBASE CONFIGURATION - REPLACE WITH YOUR OWN CONFIG
+        const firebaseConfig = {
+            apiKey: "YOUR_API_KEY",
+            authDomain: "YOUR_PROJECT.firebaseapp.com",
+            projectId: "YOUR_PROJECT_ID",
+            storageBucket: "YOUR_PROJECT.appspot.com",
+            messagingSenderId: "YOUR_SENDER_ID",
+            appId: "YOUR_APP_ID"
+        };
+
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+        const db = firebase.firestore();
+
+        let currentUser = null;
+        let currentOrderProduct = null;
+
+        // Check if user is already logged in
+        auth.onAuthStateChanged(user => {
+            if (user && user.email === 'beautyofbeads87@gmail.com') {
+                currentUser = user;
+            }
+        });
+
+        // Login Functions
+        function showLoginModal() {
+            document.getElementById('loginModal').classList.add('active');
+        }
+
+        function closeLoginModal() {
+            document.getElementById('loginModal').classList.remove('active');
+        }
+
+        async function handleLogin(e) {
+            e.preventDefault();
+            const email = document.getElementById('loginEmail').value;
+            const password = document.getElementById('loginPassword').value;
+
+            try {
+                await auth.signInWithEmailAndPassword(email, password);
+                if (email === 'beautyofbeads87@gmail.com') {
+                    currentUser = auth.currentUser;
+                    closeLoginModal();
+                    openAdminPanel();
+                    alert('Login successful! Welcome, Owner.');
+                } else {
+                    alert('Access denied. Only the owner can login.');
+                    auth.signOut();
+                }
+            } catch (error) {
+                alert('Login failed: ' + error.message);
+            }
+        }
+
+        // Admin Panel Functions
+        function openAdminPanel() {
+            document.getElementById('adminPanel').classList.add('active');
+            loadAdminProducts();
+        }
+
+        function closeAdminPanel() {
+            document.getElementById('adminPanel').classList.remove('active');
+        }
+
+        // Load products from Firestore
+        function loadProducts() {
+            db.collection('products').onSnapshot(snapshot => {
+                const productsGrid = document.getElementById('productsGrid');
+                productsGrid.innerHTML = '';
+
+                if (snapshot.empty) {
+                    productsGrid.innerHTML = '<p style="text-align: center; grid-column: 1/-1;">No products available yet.</p>';
+                    return;
+                }
+
+                snapshot.forEach(doc => {
+                    const product = doc.data();
+                    product.id = doc.id;
+                    productsGrid.innerHTML += createProductCard(product);
+                });
+            });
+        }
+
+        function createProductCard(product) {
+            return `
+                <div class="product-card">
+                    <div class="product-image">
+                        <img src="${product.image}" alt="${product.name}">
+                        ${product.badge ? `<span class="product-badge">${product.badge}</span>` : ''}
+                    </div>
+                    <div class="product-info">
+                        <p class="product-category">${product.category}</p>
+                        <h3 class="product-name">${product.name}</h3>
+                        <p class="product-description">${product.description}</p>
+                        <div class="product-footer">
+                            <div class="product-price">PKR ${product.price}</div>
+                            <span class="cod-badge">💵 COD</span>
+                        </div>
+                        <button class="btn btn-primary" style="width: 100%; margin-top: 1rem; justify-content: center;" onclick="openOrderModal('${product.name}', ${product.price}, '${product.image}')">
+                            Order Now
+                        </button>
+                    </div>
+                </div>
+            `;
+        }
+
+        // Admin: Load products for editing
+        function loadAdminProducts() {
+            db.collection('products').onSnapshot(snapshot => {
+                const list = document.getElementById('adminProductsList');
+                list.innerHTML = '';
+
+                snapshot.forEach(doc => {
+                    const product = doc.data();
+                    product.id = doc.id;
+                    list.innerHTML += `
+                        <div class="admin-product-item">
+                            <img src="${product.image}" alt="${product.name}">
+                            <div class="admin-product-info">
+                                <h4>${product.name}</h4>
+                                <p>PKR ${product.price} - ${product.category}</p>
+                            </div>
+                            <div class="admin-product-actions">
+                                <button class="btn-edit" onclick="editProduct('${doc.id}')">Edit</button>
+                                <button class="btn-delete" onclick="deleteProduct('${doc.id}')">Delete</button>
+                            </div>
+                        </div>
+                    `;
+                });
+            });
+        }
+
+        // Admin: Save product (add or update)
+        async function saveProduct(e) {
+            e.preventDefault();
+
+            const id = document.getElementById('productId').value;
+            const productData = {
+                name: document.getElementById('productName').value,
+                price: parseInt(document.getElementById('productPrice').value),
+                category: document.getElementById('productCategory').value,
+                badge: document.getElementById('productBadge').value,
+                image: document.getElementById('productImage').value,
+                description: document.getElementById('productDescription').value,
+                updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+            };
+
+            try {
+                if (id) {
+                    await db.collection('products').doc(id).update(productData);
+                    alert('Product updated successfully!');
+                } else {
+                    productData.createdAt = firebase.firestore.FieldValue.serverTimestamp();
+                    await db.collection('products').add(productData);
+                    alert('Product added successfully!');
+                }
+
+                // Reset form
+                e.target.reset();
+                document.getElementById('productId').value = '';
+                document.getElementById('formTitle').textContent = 'Add New Product';
+            } catch (error) {
+                alert('Error: ' + error.message);
+            }
+        }
+
+        // Admin: Edit product
+        function editProduct(id) {
+            db.collection('products').doc(id).get().then(doc => {
+                const product = doc.data();
+                document.getElementById('productId').value = id;
+                document.getElementById('productName').value = product.name;
+                document.getElementById('productPrice').value = product.price;
+                document.getElementById('productCategory').value = product.category;
+                document.getElementById('productBadge').value = product.badge || '';
+                document.getElementById('productImage').value = product.image;
+                document.getElementById('productDescription').value = product.description;
+                document.getElementById('formTitle').textContent = 'Edit Product';
+                window.scrollTo(0, 0);
+            });
+        }
+
+        // Admin: Delete product
+        async function deleteProduct(id) {
+            if (confirm('Are you sure you want to delete this product?')) {
+                try {
+                    await db.collection('products').doc(id).delete();
+                    alert('Product deleted successfully!');
+                } catch (error) {
+                    alert('Error: ' + error.message);
+                }
+            }
+        }
+
+        // Order Modal Functions
+        function openOrderModal(name, price, image) {
+            currentOrderProduct = { name, price, image };
+            document.getElementById('orderModal').classList.add('active');
+        }
+
+        function closeOrderModal() {
+            document.getElementById('orderModal').classList.remove('active');
+        }
+
+        function submitOrder(e) {
+            e.preventDefault();
+            
+            const name = document.getElementById('customerName').value;
+            const phone = document.getElementById('customerPhone').value;
+            const address = document.getElementById('customerAddress').value;
+
+            const message = `*New Order - Beauty of Beads*%0A%0A` +
+                           `*Product:* ${currentOrderProduct.name}%0A` +
+                           `*Price:* PKR ${currentOrderProduct.price}%0A%0A` +
+                           `*Customer Details:*%0A` +
+                           `*Name:* ${name}%0A` +
+                           `*Phone:* ${phone}%0A` +
+                           `*Address:* ${address}%0A%0A` +
+                           `*Payment:* Cash on Delivery`;
+
+            const whatsappNumber = '923111038698';
+            window.open(`https://wa.me/${whatsappNumber}?text=${message}`, '_blank');
+            
+            closeOrderModal();
+            alert('Thank you! Redirecting to WhatsApp...');
+            e.target.reset();
+        }
+
+        // Load products on page load
+        loadProducts();
+    </script>
+</body>
+</html>
