@@ -12,7 +12,6 @@
         body { font-family: 'Inter', sans-serif; background: #fff8f0; color: #1a1a1a; }
         h1, h2, h3, h4, h5, h6 { font-family: 'Playfair Display', serif; }
 
-        /* Navigation */
         nav {
             background: rgba(255, 255, 255, 0.95);
             backdrop-filter: blur(10px);
@@ -83,7 +82,6 @@
             cursor: pointer;
         }
 
-        /* Hero */
         .hero {
             min-height: 100vh;
             background: linear-gradient(135deg, #fff8f0 0%, #fadadd 50%, #fbf4f5 100%);
@@ -258,7 +256,6 @@
         .stat h3 { font-size: 2rem; color: #B76E79; margin-bottom: 0.25rem; }
         .stat p { font-size: 0.85rem; color: #6b7280; }
 
-        /* About */
         .about {
             padding: 6rem 2rem;
             background: white;
@@ -337,7 +334,6 @@
         .experience-badge h3 { font-size: 2.5rem; line-height: 1; }
         .experience-badge p { font-size: 0.75rem; text-align: center; text-transform: uppercase; letter-spacing: 0.1em; }
 
-        /* Products */
         .products {
             padding: 6rem 2rem;
             background: linear-gradient(to bottom, #fff8f0, #fadadd);
@@ -430,7 +426,6 @@
         }
         .order-btn:hover { background: #D48E99; }
 
-        /* Contact Section */
         .contact {
             padding: 6rem 2rem;
             background: white;
@@ -509,7 +504,6 @@
             line-height: 1.6;
         }
 
-        /* Footer */
         footer {
             background: #fff8f0;
             padding: 4rem 2rem 2rem;
@@ -602,7 +596,6 @@
         }
         .footer-bottom .heart { color: #ef4444; }
 
-        /* Admin Panel */
         .admin-panel {
             display: none;
             position: fixed;
@@ -705,7 +698,6 @@
         .edit-btn { background: #f59e0b; color: white; }
         .delete-btn { background: #ef4444; color: white; }
 
-        /* Login Modal */
         .login-modal {
             display: none;
             position: fixed;
@@ -742,7 +734,6 @@
             cursor: pointer;
         }
 
-        /* Order Modal */
         .order-modal {
             display: none;
             position: fixed;
@@ -787,6 +778,13 @@
             font-size: 1.5rem;
         }
 
+        .loading {
+            text-align: center;
+            padding: 3rem;
+            font-size: 1.2rem;
+            color: #6b7280;
+        }
+
         @media (max-width: 768px) {
             .hero-container, .about-grid, .contact-grid { grid-template-columns: 1fr; }
             .hero-content h2 { font-size: 2.5rem; }
@@ -803,7 +801,6 @@
 </head>
 <body>
 
-    <!-- Navigation -->
     <nav>
         <div class="nav-container">
             <a href="#" class="logo">
@@ -823,7 +820,6 @@
         </div>
     </nav>
 
-    <!-- Login Modal -->
     <div id="loginModal" class="login-modal">
         <div class="login-box">
             <h3>Owner Login</h3>
@@ -842,7 +838,6 @@
         </div>
     </div>
 
-    <!-- Admin Panel -->
     <div id="adminPanel" class="admin-panel">
         <div class="admin-container">
             <div class="admin-header">
@@ -875,7 +870,7 @@
                     </div>
                     <div class="form-group">
                         <label>Image URL *</label>
-                        <input type="url" id="pImage" required placeholder="https://beescreations.pk/cdn/shop/files/573070D2-5618-4CE2-8B09-652293C399B8.jpg?v=1757850778&width=713">
+                        <input type="url" id="pImage" required placeholder="https://example.com/image.jpg">
                     </div>
                     <div class="form-group">
                         <label>Description *</label>
@@ -891,7 +886,6 @@
         </div>
     </div>
 
-    <!-- Order Modal -->
     <div id="orderModal" class="order-modal">
         <div class="order-box">
             <button class="close-x" onclick="closeOrder()">×</button>
@@ -922,7 +916,6 @@
         </div>
     </div>
 
-    <!-- Hero Section -->
     <section id="home">
         <div class="hero-container">
             <div class="hero-content">
@@ -980,7 +973,6 @@
         </div>
     </section>
 
-    <!-- About Section -->
     <section id="about" class="about">
         <div class="container">
             <div class="section-header">
@@ -1036,7 +1028,6 @@
         </div>
     </section>
 
-    <!-- Products Section -->
     <section id="products" class="products">
         <div class="container">
             <div class="section-header">
@@ -1044,11 +1035,12 @@
                 <h2 class="section-title">Pearl & Chain Bracelets</h2>
                 <p class="section-subtitle">Handcrafted with genuine pearls and quality chains</p>
             </div>
-            <div id="productsGrid" class="products-grid"></div>
+            <div id="productsGrid" class="products-grid">
+                <div class="loading">Loading products...</div>
+            </div>
         </div>
     </section>
 
-    <!-- Contact Section -->
     <section id="contact" class="contact">
         <div class="container">
             <div class="section-header">
@@ -1094,7 +1086,7 @@
                         <p>Pay when you receive your order. No advance payment required!</p>
                     </div>
                     <div class="order-info-item">
-                        <h4>🚚 Delivery Time</h4>
+                        <h4> Delivery Time</h4>
                         <p>3-5 business days for delivery</p>
                     </div>
                     <div class="order-info-item">
@@ -1106,7 +1098,6 @@
         </div>
     </section>
 
-    <!-- Footer -->
     <footer>
         <div class="footer-grid">
             <div>
@@ -1150,50 +1141,52 @@
     </footer>
 
     <script>
-        // Default products
-        let products = JSON.parse(localStorage.getItem('beautyOfBeadsProducts')) || [
-            {
-                name: "Gold Chain Pearl Bracelet",
-                price: 400,
-                category: "Pearl & Chain",
-                badge: "Best Seller",
-                image: "https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?w=600",
-                description: "Beautiful combination of gold-plated chain with scattered pearls"
-            },
-            {
-                name: "Layered Pearl & Chain Bracelet",
-                price: 450,
-                category: "Pearl Bracelet",
-                badge: "New",
-                image: "https://images.unsplash.com/photo-1602173574767-37ac01994b2a?w=600",
-                description: "Trendy double-layer design featuring pearls and delicate chains"
-            },
-            {
-                name: "Silver Chain Pearl Bracelet",
-                price: 450,
-                category: "Pearl & Chain",
-                badge: "",
-                image: "https://images.unsplash.com/photo-1515562141207-7a88fb7ce338?w=600",
-                description: "Sterling silver chain with white pearls. Classic and timeless"
-            },
-            {
-                name: "Baroque Pearl Chain Bracelet",
-                price: 400,
-                category: "Pearl Bracelet",
-                badge: "",
-                image: "https://images.unsplash.com/photo-1630019852942-f89202989a59?w=600",
-                description: "Unique irregular-shaped baroque pearls on a delicate chain"
-            }
-        ];
+        // ============================================
+        // JSONBin.io Configuration
+        // Yahan apna Bin ID aur API Key daalein
+        // ============================================
+        const BIN_ID = '6a3922ebda38895dfeeb1e37'; // JSONBin.io se mila hua Bin ID
+        const API_KEY = '$2a$10$avQScesEquoibdfckt3SY.8gJsaKB5JqhcN2zSsnx./zSrFgrdRc2'; // JSONBin.io se mila hua API Key
+        const BIN_URL = `https://api.jsonbin.io/v3/b/${BIN_ID}`;
 
+        let products = [];
         let currentOrder = null;
         const OWNER_EMAIL = 'beautyofbeads87@gmail.com';
         const OWNER_PASSWORD = 'admin123';
 
-        function init() {
-            renderProducts();
-            if (localStorage.getItem('isAdminLoggedIn') === 'true') {
-                showAdminPanel();
+        // Products load karein JSONBin se
+        async function loadProducts() {
+            try {
+                const response = await fetch(`${BIN_URL}/latest`, {
+                    headers: {
+                        'X-Master-Key': API_KEY
+                    }
+                });
+                const data = await response.json();
+                products = data.record;
+                renderProducts();
+            } catch (error) {
+                console.error('Error loading products:', error);
+                document.getElementById('productsGrid').innerHTML = 
+                    '<p style="text-align: center; grid-column: 1/-1; font-size: 1.2rem; color: #6b7280;">Error loading products. Please refresh the page.</p>';
+            }
+        }
+
+        // Products save karein JSONBin mein
+        async function saveProductsToCloud() {
+            try {
+                await fetch(BIN_URL, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-Master-Key': API_KEY
+                    },
+                    body: JSON.stringify(products)
+                });
+                return true;
+            } catch (error) {
+                console.error('Error saving products:', error);
+                return false;
             }
         }
 
@@ -1215,7 +1208,7 @@
                         <p class="product-description">${p.description}</p>
                         <div class="product-footer">
                             <div class="product-price">PKR ${p.price}</div>
-                            <span class="cod-badge">💵 COD</span>
+                            <span class="cod-badge"> COD</span>
                         </div>
                         <button class="order-btn" onclick="openOrder(${index})">Order Now</button>
                     </div>
@@ -1268,7 +1261,7 @@
             `).join('');
         }
 
-        function saveProduct(e) {
+        async function saveProduct(e) {
             e.preventDefault();
             const editIndex = document.getElementById('editIndex').value;
             const product = {
@@ -1279,18 +1272,26 @@
                 image: document.getElementById('pImage').value,
                 description: document.getElementById('pDesc').value
             };
+
             if (editIndex === '') {
                 products.push(product);
             } else {
                 products[parseInt(editIndex)] = product;
             }
-            localStorage.setItem('beautyOfBeadsProducts', JSON.stringify(products));
-            renderProducts();
-            renderAdminProducts();
-            e.target.reset();
-            document.getElementById('editIndex').value = '';
-            document.getElementById('formTitle').textContent = 'Add New Product';
-            alert('Product saved successfully!');
+
+            // Cloud mein save karein
+            const saved = await saveProductsToCloud();
+            
+            if (saved) {
+                renderProducts();
+                renderAdminProducts();
+                e.target.reset();
+                document.getElementById('editIndex').value = '';
+                document.getElementById('formTitle').textContent = 'Add New Product';
+                alert('Product saved successfully! All visitors will now see this product.');
+            } else {
+                alert('Error saving product. Please try again.');
+            }
         }
 
         function editProduct(index) {
@@ -1306,13 +1307,19 @@
             window.scrollTo(0, 0);
         }
 
-        function deleteProduct(index) {
+        async function deleteProduct(index) {
             if (confirm('Are you sure you want to delete this product?')) {
                 products.splice(index, 1);
-                localStorage.setItem('beautyOfBeadsProducts', JSON.stringify(products));
-                renderProducts();
-                renderAdminProducts();
-                alert('Product deleted!');
+                
+                const saved = await saveProductsToCloud();
+                
+                if (saved) {
+                    renderProducts();
+                    renderAdminProducts();
+                    alert('Product deleted successfully!');
+                } else {
+                    alert('Error deleting product. Please try again.');
+                }
             }
         }
 
@@ -1343,7 +1350,12 @@
             e.target.reset();
         }
 
-        init();
+        // Initialize
+        loadProducts();
+        
+        if (localStorage.getItem('isAdminLoggedIn') === 'true') {
+            showAdminPanel();
+        }
     </script>
 </body>
 </html>
