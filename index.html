@@ -667,6 +667,56 @@
             cursor: pointer;
             font-weight: 600;
         }
+
+        .image-upload-section { margin-bottom: 1.5rem; }
+        .upload-button {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.8rem 1.5rem;
+            background: #D4AF37;
+            color: white;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: 600;
+            font-size: 1rem;
+        }
+        .upload-button:hover {
+            background: #B8962E;
+            transform: translateY(-2px);
+        }
+        .image-preview {
+            margin-top: 1rem;
+            border-radius: 10px;
+            overflow: hidden;
+            max-width: 300px;
+            border: 2px solid #ddd;
+        }
+        .image-preview img {
+            width: 100%;
+            height: auto;
+            display: block;
+        }
+        .remove-image {
+            display: inline-block;
+            margin-top: 0.5rem;
+            padding: 0.4rem 1rem;
+            background: #ef4444;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 0.85rem;
+        }
+        .remove-image:hover { background: #dc2626; }
+        .upload-hint {
+            font-size: 0.85rem;
+            color: #6b7280;
+            margin-top: 0.5rem;
+        }
+
         .admin-products { margin-top: 2rem; }
         .admin-products h3 { margin-bottom: 1rem; font-family: 'Playfair Display', serif; }
         .admin-product-item {
@@ -868,10 +918,21 @@
                             <input type="text" id="pBadge" placeholder="e.g., New, Best Seller">
                         </div>
                     </div>
-                    <div class="form-group">
-                        <label>Image URL *</label>
-                        <input type="url" id="pImage" required placeholder="https://example.com/image.jpg">
+                    
+                    <div class="image-upload-section">
+                        <label>Product Image *</label>
+                        <button type="button" class="upload-button" onclick="document.getElementById('fileInput').click()">
+                            📷 Upload Image from Gallery
+                        </button>
+                        <input type="file" id="fileInput" accept="image/*" style="display: none;" onchange="handleFileSelect(event)">
+                        <p class="upload-hint">Or paste image URL below:</p>
+                        <input type="url" id="pImage" placeholder="https://example.com/image.jpg" style="margin-top: 0.5rem;">
+                        <div id="imagePreview" class="image-preview" style="display: none;">
+                            <img id="previewImg" src="" alt="Preview">
+                        </div>
+                        <button type="button" id="removeImageBtn" class="remove-image" style="display: none;" onclick="removeImage()">Remove Image</button>
                     </div>
+
                     <div class="form-group">
                         <label>Description *</label>
                         <textarea id="pDesc" required rows="3" placeholder="Product description..."></textarea>
@@ -1086,7 +1147,7 @@
                         <p>Pay when you receive your order. No advance payment required!</p>
                     </div>
                     <div class="order-info-item">
-                        <h4> Delivery Time</h4>
+                        <h4>🚚 Delivery Time</h4>
                         <p>3-5 business days for delivery</p>
                     </div>
                     <div class="order-info-item">
@@ -1143,27 +1204,57 @@
     <script>
         // ============================================
         // JSONBin.io Configuration
-        // Yahan apna Bin ID aur API Key daalein
         // ============================================
-        const BIN_ID = '6a3922ebda38895dfeeb1e37'; // JSONBin.io se mila hua Bin ID
-        const API_KEY = '$2a$10$avQScesEquoibdfckt3SY.8gJsaKB5JqhcN2zSsnx./zSrFgrdRc2'; // JSONBin.io se mila hua API Key
+        const BIN_ID = '6a3922ebda38895dfeeb1e37';
+        const API_KEY = '$2a$10$avQScesEquoibdfckt3SY.8gJsaKB5JqhcN2zSsnx./zSrFgrdRc2';
         const BIN_URL = `https://api.jsonbin.io/v3/b/${BIN_ID}`;
 
         let products = [];
         let currentOrder = null;
+        let selectedFile = null;
         const OWNER_EMAIL = 'beautyofbeads87@gmail.com';
         const OWNER_PASSWORD = 'admin123';
+
+        // Handle file selection from local computer
+        function handleFileSelect(event) {
+            const file = event.target.files[0];
+            if (file) {
+                selectedFile = file;
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    document.getElementById('pImage').value = e.target.result;
+                    showImagePreview(e.target.result);
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+
+        function showImagePreview(url) {
+            const preview = document.getElementById('imagePreview');
+            const previewImg = document.getElementById('previewImg');
+            const removeBtn = document.getElementById('removeImageBtn');
+            
+            previewImg.src = url;
+            preview.style.display = 'block';
+            removeBtn.style.display = 'inline-block';
+        }
+
+        function removeImage() {
+            document.getElementById('pImage').value = '';
+            document.getElementById('imagePreview').style.display = 'none';
+            document.getElementById('removeImageBtn').style.display = 'none';
+            document.getElementById('fileInput').value = '';
+            selectedFile = null;
+        }
 
         // Products load karein JSONBin se
         async function loadProducts() {
             try {
                 const response = await fetch(`${BIN_URL}/latest`, {
-                    headers: {
-                        'X-Master-Key': API_KEY
-                    }
+                    headers: { 'X-Master-Key': API_KEY }
                 });
                 const data = await response.json();
-                products = data.record;
+                products = data.record || [];
                 renderProducts();
             } catch (error) {
                 console.error('Error loading products:', error);
@@ -1208,7 +1299,7 @@
                         <p class="product-description">${p.description}</p>
                         <div class="product-footer">
                             <div class="product-price">PKR ${p.price}</div>
-                            <span class="cod-badge"> COD</span>
+                            <span class="cod-badge">💵 COD</span>
                         </div>
                         <button class="order-btn" onclick="openOrder(${index})">Order Now</button>
                     </div>
@@ -1263,13 +1354,20 @@
 
         async function saveProduct(e) {
             e.preventDefault();
+            
+            const imageUrl = document.getElementById('pImage').value;
+            if (!imageUrl) {
+                alert('Please upload or provide an image URL for the product!');
+                return;
+            }
+
             const editIndex = document.getElementById('editIndex').value;
             const product = {
                 name: document.getElementById('pName').value,
                 price: parseInt(document.getElementById('pPrice').value),
                 category: document.getElementById('pCategory').value,
                 badge: document.getElementById('pBadge').value,
-                image: document.getElementById('pImage').value,
+                image: imageUrl,
                 description: document.getElementById('pDesc').value
             };
 
@@ -1279,7 +1377,6 @@
                 products[parseInt(editIndex)] = product;
             }
 
-            // Cloud mein save karein
             const saved = await saveProductsToCloud();
             
             if (saved) {
@@ -1288,6 +1385,7 @@
                 e.target.reset();
                 document.getElementById('editIndex').value = '';
                 document.getElementById('formTitle').textContent = 'Add New Product';
+                removeImage();
                 alert('Product saved successfully! All visitors will now see this product.');
             } else {
                 alert('Error saving product. Please try again.');
@@ -1304,15 +1402,18 @@
             document.getElementById('pImage').value = p.image;
             document.getElementById('pDesc').value = p.description;
             document.getElementById('formTitle').textContent = 'Edit Product';
+            
+            if (p.image) {
+                showImagePreview(p.image);
+            }
+            
             window.scrollTo(0, 0);
         }
 
         async function deleteProduct(index) {
             if (confirm('Are you sure you want to delete this product?')) {
                 products.splice(index, 1);
-                
                 const saved = await saveProductsToCloud();
-                
                 if (saved) {
                     renderProducts();
                     renderAdminProducts();
@@ -1344,7 +1445,6 @@
             const body = `Hello Beauty of Beads,%0D%0A%0D%0AI would like to place a new order.%0D%0A%0D%0A--- ORDER DETAILS ---%0D%0AProduct: ${currentOrder.name}%0D%0APrice: PKR ${currentOrder.price}%0D%0AQuantity: ${qty}%0D%0ATotal: PKR ${total}%0D%0A%0D%0A--- CUSTOMER DETAILS ---%0D%0AName: ${name}%0D%0APhone: ${phone}%0D%0AAddress: ${address}%0D%0A%0D%0APayment Method: Cash on Delivery%0D%0A%0D%0AThank you!`;
 
             window.location.href = `mailto:${OWNER_EMAIL}?subject=${encodeURIComponent(subject)}&body=${body}`;
-            
             closeOrder();
             alert('Thank you! Your email app will open. Please click Send to confirm your order.');
             e.target.reset();
@@ -1352,7 +1452,6 @@
 
         // Initialize
         loadProducts();
-        
         if (localStorage.getItem('isAdminLoggedIn') === 'true') {
             showAdminPanel();
         }
